@@ -1,90 +1,37 @@
-# =========================
-# Base Image with PHP-FPM
-# =========================
 FROM php:8.2-fpm
 
-# =========================
-# Install System Dependencies
-# =========================
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libicu-dev \
-    curl \
-    default-mysql-client \
-    nginx \
-    supervisor \
+    git unzip libzip-dev libpng-dev libonig-dev \
+    libxml2-dev libicu-dev curl default-mysql-client \
+    nginx supervisor \
     && docker-php-ext-configure intl \
-    && docker-php-ext-install \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        zip \
-        intl \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && rm -rf /var/lib/apt/lists/*
 
-# =========================
-# Install Composer
-# =========================
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# =========================
-# Install Node.js 22
-# =========================
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# =========================
-# Set Working Directory
-# =========================
 WORKDIR /app
 
-# =========================
-# Copy Composer Files
-# =========================
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
 
-# =========================
-# Copy All Files
-# =========================
 COPY . .
 
-# =========================
-# Finalize Composer
-# =========================
 RUN composer dump-autoload --optimize --no-dev
 
-# =========================
-# Install Node Dependencies & Build Assets
-# =========================
 RUN npm ci && npm run build && npm prune --omit=dev
 
-# =========================
-# Set Permissions
-# =========================
 RUN mkdir -p storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data /app
 
-# =========================
-# Create .env
-# =========================
 RUN touch .env
 
-# =========================
-# Nginx Configuration
-# =========================
-RUN rm -f /etc/nginx/sites-enabled/default && \
-    rm -f /etc/nginx/sites-available/default
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
 COPY <<'EOF' /etc/nginx/sites-available/default
 server {
@@ -109,11 +56,6 @@ server {
 }
 EOF
 
-RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
-# =========================
-# Supervisor Configuration
-# =========================
 COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
 nodaemon=true
@@ -131,7 +73,7 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 
 [program:nginx]
-command=/bin/bash -c "envsubst '$$PORT' < /etc/nginx/sites-available/default | tee /etc/nginx/sites-enabled/default > /dev/null && nginx -g 'daemon off;'"
+command=/bin/bash -c "sed 's/\${PORT}/'\"$PORT\"'/g' /etc/nginx/sites-available/default > /etc/nginx/sites-enabled/default && nginx -g 'daemon off;'"
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
@@ -140,9 +82,6 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 EOF
 
-# =========================
-# Start Application
-# =========================
 CMD php artisan config:clear && \
     php artisan cache:clear && \
     echo "Waiting for database..." && \
