@@ -1,9 +1,10 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev \
     libxml2-dev libicu-dev curl default-mysql-client \
+    nginx supervisor \
     && docker-php-ext-configure intl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && rm -rf /var/lib/apt/lists/*
@@ -33,22 +34,52 @@ RUN npm ci && npm run build && npm prune --omit=dev
 
 # Set permissions
 RUN mkdir -p storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+# Nginx config
+RUN echo 'server { \n\
+    listen ${PORT}; \n\
+    root /app/public; \n\
+    index index.php; \n\
+    \n\
+    location / { \n\
+        try_files $uri $uri/ /index.php?$query_string; \n\
+    } \n\
+    \n\
+    location ~ \.php$ { \n\
+        fastcgi_pass 127.0.0.1:9000; \n\
+        fastcgi_index index.php; \n\
+        include fastcgi_params; \n\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n\
+    } \n\
+    \n\
+    location ~ /\.(?!well-known).* { \n\
+        deny all; \n\
+    } \n\
+}' > /etc/nginx/sites-available/default
+
+# Supervisor config
+RUN echo '[supervisord] \n\
+nodaemon=true \n\
+\n\
+[program:php-fpm] \n\
+command=php-fpm \n\
+autostart=true \n\
+autorestart=true \n\
+\n\
+[program:nginx] \n\
+command=/bin/bash -c "envsubst '\$\${PORT}' < /etc/nginx/sites-available/default > /tmp/default && mv /tmp/default /etc/nginx/sites-enabled/default && nginx -g \"daemon off;\"" \n\
+autostart=true \n\
+autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
 
 # Create .env
 RUN touch .env
 
-# Health check (optional tapi bagus)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
-  CMD php artisan || exit 1
-
-# Start with PORT from Railway
+# Start script
 CMD php artisan config:clear && \
     php artisan cache:clear && \
-    echo "Waiting for database..." && \
-    timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do echo "Retrying..."; sleep 3; done' && \
+    timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do sleep 3; done' && \
     php artisan migrate --force && \
     php artisan config:cache && \
-    echo "PORT variable is: ${PORT}" && \
-    echo "Starting server on port ${PORT}..." && \
-    php artisan serve --host=0.0.0.0 --port="${PORT}"
+    /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
