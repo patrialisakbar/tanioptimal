@@ -44,7 +44,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 WORKDIR /app
 
 # =========================
-# Copy Composer Files (untuk caching)
+# Copy Composer Files
 # =========================
 COPY composer.json composer.lock ./
 
@@ -80,7 +80,7 @@ RUN mkdir -p storage bootstrap/cache \
 RUN touch .env
 
 # =========================
-# Start Application
+# Start Application (FIXED: No route:cache for Filament)
 # =========================
 CMD php artisan config:clear && \
     php artisan cache:clear && \
@@ -88,7 +88,7 @@ CMD php artisan config:clear && \
     timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do echo "Retrying database connection..."; sleep 3; done' && \
     echo "Running migrations..." && \
     php artisan migrate --force && \
+    echo "Caching configuration..." && \
     php artisan config:cache && \
-    php artisan route:cache && \
     echo "Starting server on port ${PORT:-8080}..." && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
