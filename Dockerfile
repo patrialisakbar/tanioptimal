@@ -3,7 +3,7 @@ FROM php:8.2-fpm
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev \
     libxml2-dev libicu-dev curl default-mysql-client \
-    nginx supervisor \
+    nginx supervisor gettext-base \
     && docker-php-ext-configure intl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && rm -rf /var/lib/apt/lists/*
@@ -33,9 +33,10 @@ RUN touch .env
 
 RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
-COPY <<'EOF' /etc/nginx/sites-available/default
+# Template nginx config dengan placeholder
+COPY <<'EOF' /etc/nginx/nginx-template.conf
 server {
-    listen 8080;
+    listen PORT_PLACEHOLDER;
     server_name _;
     root /app/public;
     index index.php index.html;
@@ -67,8 +68,6 @@ server {
 }
 EOF
 
-RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
 COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
 nodaemon=true
@@ -86,7 +85,7 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 
 [program:nginx]
-command=nginx -g 'daemon off;'
+command=/bin/bash -c "sed 's/PORT_PLACEHOLDER/'\"${PORT:-8080}\"'/g' /etc/nginx/nginx-template.conf > /etc/nginx/sites-enabled/default && nginx -g 'daemon off;'"
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
@@ -101,5 +100,6 @@ CMD php artisan config:clear && \
     timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do echo "Retrying..."; sleep 3; done' && \
     php artisan migrate --force && \
     php artisan config:cache && \
+    echo "PORT is set to: ${PORT:-8080}" && \
     echo "Starting services..." && \
     /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
