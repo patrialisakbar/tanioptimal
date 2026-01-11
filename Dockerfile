@@ -42,13 +42,13 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chmod -R 775 storage bootstrap/cache
 
 # =========================
-# Expose port (Railway akan inject PORT)
+# JANGAN expose port hardcoded
 # =========================
-EXPOSE 8080
+# EXPOSE 8080 <-- HAPUS INI
 
 # =========================
-# Start Laravel (WAJIB pakai $PORT)
+# Start Laravel dengan PORT dinamis
 # =========================
-CMD php artisan key:generate --force || true && \
-    php artisan migrate --force || true && \
-    php artisan serve --host=0.0.0.0 --port=${PORT}
+CMD php artisan key:generate --force && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=$PORT
