@@ -117,10 +117,9 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 /var/www/storage \
     && chmod -R 775 /var/www/bootstrap/cache
 
-# Laravel optimization
+# Laravel optimization (skip route cache karena ada konflik)
 RUN php artisan config:cache \
     && php artisan event:cache \
-    && php artisan route:cache \
     && php artisan view:cache
 
 # Expose port
@@ -128,6 +127,3 @@ EXPOSE 80
 
 # Start supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
-
-# End of Dockerfile
