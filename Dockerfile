@@ -125,5 +125,22 @@ RUN php artisan config:cache \
 # Expose port
 EXPOSE 80
 
-# Start supervisord
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+echo "Waiting for database..."\n\
+until php artisan migrate --force 2>/dev/null; do\n\
+  echo "Database is unavailable - sleeping"\n\
+  sleep 2\n\
+done\n\
+\n\
+echo "Running migrations..."\n\
+php artisan migrate --force\n\
+\n\
+echo "Starting supervisord..."\n\
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf\n\
+' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Start with entrypoint
+CMD ["/entrypoint.sh"]
