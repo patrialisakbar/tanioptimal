@@ -35,18 +35,29 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
 COPY <<'EOF' /etc/nginx/sites-available/default
 server {
-    listen ${PORT};
+    listen 8080;
+    server_name _;
     root /app/public;
     index index.php index.html;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    charset utf-8;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
     location ~ \.php$ {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
 
@@ -55,6 +66,8 @@ server {
     }
 }
 EOF
+
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
@@ -73,7 +86,7 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 
 [program:nginx]
-command=/bin/bash -c "sed 's/\${PORT}/'\"$PORT\"'/g' /etc/nginx/sites-available/default > /etc/nginx/sites-enabled/default && nginx -g 'daemon off;'"
+command=nginx -g 'daemon off;'
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
@@ -88,5 +101,5 @@ CMD php artisan config:clear && \
     timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do echo "Retrying..."; sleep 3; done' && \
     php artisan migrate --force && \
     php artisan config:cache && \
-    echo "Starting services on port ${PORT}..." && \
+    echo "Starting services..." && \
     /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
