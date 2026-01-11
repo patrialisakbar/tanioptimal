@@ -1,10 +1,10 @@
 # =========================
-# Base image
+# Base Image
 # =========================
 FROM php:8.2-cli
 
 # =========================
-# Install system dependencies
+# Install System Dependencies
 # =========================
 RUN apt-get update && apt-get install -y \
     git \
@@ -13,8 +13,19 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libicu-dev \
     curl \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring exif pcntl bcmath gd
+    default-mysql-client \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl
 
 # =========================
 # Install Composer
@@ -22,33 +33,62 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # =========================
-# Set working directory
+# Install Node.js 22
+# =========================
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs
+
+# =========================
+# Set Working Directory
 # =========================
 WORKDIR /app
 
 # =========================
-# Copy project files
+# Copy Composer Files (untuk caching)
+# =========================
+COPY composer.json composer.lock ./
+
+# =========================
+# Install PHP Dependencies
+# =========================
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
+
+# =========================
+# Copy All Files
 # =========================
 COPY . .
 
 # =========================
-# Install PHP dependencies
+# Finalize Composer
 # =========================
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer dump-autoload --optimize --no-dev
 
 # =========================
-# Set permissions
+# Install Node Dependencies & Build Assets
 # =========================
-RUN chmod -R 775 storage bootstrap/cache
+RUN npm ci && npm run build && npm prune --omit=dev
 
 # =========================
-# JANGAN expose port hardcoded
+# Set Permissions
 # =========================
-# EXPOSE 8080 <-- HAPUS INI
+RUN mkdir -p storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 # =========================
-# Start Laravel dengan PORT dinamis
+# Create .env placeholder
 # =========================
-CMD php artisan key:generate --force && \
+RUN touch .env
+
+# =========================
+# Start Application
+# =========================
+CMD php artisan config:clear && \
+    php artisan cache:clear && \
+    echo "Waiting for database connection..." && \
+    timeout 60 bash -c 'until php artisan migrate:status 2>/dev/null; do echo "Retrying database connection..."; sleep 3; done' && \
+    echo "Running migrations..." && \
     php artisan migrate --force && \
-    php artisan serve --host=0.0.0.0 --port=$PORT
+    php artisan config:cache && \
+    php artisan route:cache && \
+    echo "Starting server on port ${PORT:-8080}..." && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
