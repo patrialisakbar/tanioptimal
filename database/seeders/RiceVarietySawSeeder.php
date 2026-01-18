@@ -15,22 +15,29 @@ class RiceVarietySawSeeder extends Seeder
      * HANYA 5 VARIETAS untuk fitur rekomendasi (SAW)
      * 41 varietas lainnya adalah untuk fitur jadwal tanam
      * 
-     * Kriteria:
-     * C1: Kesesuaian Jenis Tanah (bobot 4) - BENEFIT - Ultisol:3, Liat:2, Aluvial:1
-     * C2: Ketahanan Curah Hujan Rendah (bobot 2) - COST - 800-1200:3, 1200-1500:2, 1500-1800:1
-     * C3: Adaptasi Suhu Tinggi (bobot 3) - BENEFIT - 30-35°C:3, 27-29°C:2, 25-26°C:1
-     * C4: Kesesuaian Ketinggian Lokasi (bobot 1) - COST - 0-500:3, 500-800:2, 800-1200:1
-     * C5: Efisiensi Pemanfaatan Air (bobot 5) - COST - Tadah Hujan:3, Irigasi Sederhana:2, Rawa:1
+     * Data SAW dari Excel:
+     * C1 - Jenis Tanah (BENEFIT) - Bobot: 4
+     * C2 - Curah Hujan (COST) - Bobot: 2  
+     * C3 - Suhu (BENEFIT) - Bobot: 3
+     * C4 - Ketinggian (COST) - Bobot: 1
+     * C5 - Ketersediaan Air (COST) - Bobot: 5
+     * 
+     * Scores (1-3):
+     * A1 - Nagina 22:      C1:3, C2:1, C3:3, C4:2, C5:1
+     * A2 - Sahbhagi Dhan:  C1:2, C2:3, C3:2, C4:3, C5:3
+     * A3 - Vandana:        C1:1, C2:3, C3:1, C4:3, C5:3
+     * A4 - DRR Dhan 42:    C1:2, C2:3, C3:2, C4:2, C5:2
+     * A5 - Inpago 8:       C1:3, C2:2, C3:3, C4:2, C5:1
      */
     public function run(): void
     {
-        // Mapping hanya untuk 5 varietas dengan scores berdasarkan kriteria
+        // Mapping hanya untuk 5 varietas dengan scores berdasarkan data Excel terbaru
         $varietiesScores = [
-            'Nagina 22' => ['c1' => 3, 'c2' => 3, 'c3' => 3, 'c4' => 2, 'c5' => 3],
-            'Sahbhagi Dhan' => ['c1' => 2, 'c2' => 1, 'c3' => 2, 'c4' => 1, 'c5' => 1],
-            'Vandana' => ['c1' => 1, 'c2' => 1, 'c3' => 1, 'c4' => 1, 'c5' => 1],
-            'DRR Dhan 42' => ['c1' => 2, 'c2' => 1, 'c3' => 2, 'c4' => 2, 'c5' => 2],
-            'Inpago 8' => ['c1' => 3, 'c2' => 2, 'c3' => 3, 'c4' => 2, 'c5' => 3],
+            'Nagina 22' => ['c1' => 3, 'c2' => 1, 'c3' => 3, 'c4' => 2, 'c5' => 1],
+            'Sahbhagi Dhan' => ['c1' => 2, 'c2' => 3, 'c3' => 2, 'c4' => 3, 'c5' => 3],
+            'Vandana' => ['c1' => 1, 'c2' => 3, 'c3' => 1, 'c4' => 3, 'c5' => 3],
+            'DRR Dhan 42' => ['c1' => 2, 'c2' => 3, 'c3' => 2, 'c4' => 2, 'c5' => 2],
+            'Inpago 8' => ['c1' => 3, 'c2' => 2, 'c3' => 3, 'c4' => 2, 'c5' => 1],
         ];
 
         // Get all criteria

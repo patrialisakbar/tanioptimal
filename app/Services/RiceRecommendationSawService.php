@@ -65,13 +65,14 @@ class RiceRecommendationSawService
     /**
      * Calculate final SAW score dari individual scores
      * 
-     * Formula:
-     * - Benefit type: normalized_score = score / max_score
-     * - Cost type: normalized_score = min_score / score
-     * - Final score = sum(weight * normalized_score) / sum(weight)
+     * Formula SAW yang BENAR:
+     * 1. Normalisasi untuk setiap kriteria:
+     *    - Benefit: R_ij = X_ij / Max(X_ij)
+     *    - Cost: R_ij = Min(X_ij) / X_ij
+     * 2. Final Score: V_i = Σ(W_j * R_ij)
      * 
      * @param array $scores Array dari criteria scores
-     * @return float Final normalized score (0-1)
+     * @return float Final score (0-1, akan dikonversi ke persentase)
      */
     public function calculateFinalScore(array $scores): float
     {
@@ -79,8 +80,8 @@ class RiceRecommendationSawService
             return 0;
         }
 
-        $totalWeight = 0;
         $weightedSum = 0;
+        $totalWeight = 0;
 
         foreach ($scores as $criteriaCode => $scoreData) {
             $weight = $scoreData['weight'];
@@ -96,17 +97,17 @@ class RiceRecommendationSawService
             $weightedSum += $weight * $normalizedScore;
         }
 
-        // Hitung final score dengan normalisasi weight
+        // Final score = Σ(W_j * R_ij) / Total Weight
+        // Dikali 100 untuk persentase jika diperlukan di frontend
         $finalScore = $totalWeight > 0 ? ($weightedSum / $totalWeight) : 0;
         
-        // Ensure score is between 0 and 1
-        return min(1, max(0, $finalScore));
+        return $finalScore;
     }
 
     /**
-     * Normalize score untuk SAW
+     * Normalize score untuk SAW (METODE YANG BENAR)
      * 
-     * @param float $score Raw score (1-5)
+     * @param float $score Raw score (1-3)
      * @param string $type 'benefit' atau 'cost'
      * @param string $criteriaCode Code kriteria untuk reference
      * @return float Normalized score (0-1)
@@ -131,12 +132,12 @@ class RiceRecommendationSawService
         $maxScore = max($allScoresForCriteria);
         $minScore = min($allScoresForCriteria);
 
-        // Normalisasi berdasarkan type
+        // Normalisasi berdasarkan type SESUAI METODE SAW
         if ($type === 'benefit') {
-            // Semakin tinggi score, semakin baik
+            // Benefit: R_ij = X_ij / Max(X_ij)
             return $maxScore > 0 ? $score / $maxScore : 0;
         } else {
-            // Cost type: semakin rendah score, semakin baik (invert: min/score)
+            // Cost: R_ij = Min(X_ij) / X_ij
             return $score > 0 ? $minScore / $score : 0;
         }
     }
@@ -213,10 +214,10 @@ class RiceRecommendationSawService
             $criteria = $scoreData['criteria'];
             $score = $scoreData['raw_score'];
 
-            if ($score >= 4) {
-                $reasons[] = "✓ {$criteria->name} (skor: {$score}/5)";
-            } elseif ($score <= 2) {
-                $reasons[] = "✗ {$criteria->name} (skor: {$score}/5)";
+            if ($score >= 3) {
+                $reasons[] = "✓ {$criteria->name} (skor: {$score}/3)";
+            } elseif ($score <= 1) {
+                $reasons[] = "✗ {$criteria->name} (skor: {$score}/3)";
             }
         }
 
