@@ -63,3 +63,6 @@ class RiceCriteriaSeeder extends Seeder
         }
     }
 }
+
+
+// jda
