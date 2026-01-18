@@ -121,11 +121,18 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 /var/www/storage \
     && chmod -R 775 /var/www/bootstrap/cache
 
-# Laravel optimization
-RUN php artisan config:cache \
-    && php artisan event:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Laravel optimization (skip for now, will cache at runtime if env is correct)
+# RUN php artisan config:cache \
+#     && php artisan event:cache \
+#     && php artisan route:cache \
+#     && php artisan view:cache
+
+# Configure PHP to show errors
+RUN echo 'display_errors = On\n\
+display_startup_errors = On\n\
+error_reporting = E_ALL\n\
+log_errors = On\n\
+error_log = /dev/stderr' > /usr/local/etc/php/conf.d/error-logging.ini
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
@@ -138,6 +145,19 @@ echo "Starting application on port $PORT"\n\
 \n\
 # Generate nginx config from template with actual PORT\n\
 envsubst "\$PORT" < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default\n\
+\n\
+# Fix permissions for storage and cache\n\
+chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache\n\
+chmod -R 775 /var/www/storage /var/www/bootstrap/cache\n\
+\n\
+# Clear Laravel cache (important for config with new env vars)\n\
+php artisan config:clear || echo "Config clear failed"\n\
+php artisan cache:clear || echo "Cache clear failed"\n\
+php artisan view:clear || echo "View clear failed"\n\
+\n\
+# Test if Laravel can boot\n\
+echo "Testing Laravel..."\n\
+php artisan --version || echo "Laravel boot test failed!"\n\
 \n\
 # Test nginx configuration\n\
 nginx -t\n\
