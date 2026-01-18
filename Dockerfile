@@ -43,7 +43,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . /var/www
 
-# Create nginx config template (will be processed at runtime)
+# Create nginx config template (with PORT variable)
 RUN echo 'server {\n\
     listen ${PORT};\n\
     listen [::]:${PORT};\n\
@@ -70,7 +70,7 @@ RUN echo 'server {\n\
     }\n\
 }' > /etc/nginx/sites-available/default.template
 
-# Create supervisord config
+# Create supervisord config inline
 RUN echo '[supervisord]\n\
 nodaemon=true\n\
 user=root\n\
@@ -124,9 +124,10 @@ RUN chown -R www-data:www-data /var/www \
 # Laravel optimization
 RUN php artisan config:cache \
     && php artisan event:cache \
+    && php artisan route:cache \
     && php artisan view:cache
 
-# Create start script
+# Create startup script
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
@@ -145,8 +146,10 @@ nginx -t\n\
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /start.sh \
     && chmod +x /start.sh
 
-# Expose port (Railway will override this with their PORT variable)
+# Expose port
 EXPOSE ${PORT:-80}
 
 # Start application
 CMD ["/start.sh"]
+
+# End of Dockerfile
