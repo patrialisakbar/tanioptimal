@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     supervisor \
-    nginx
+    nginx \
+    gettext-base
 
 # Install Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
@@ -42,10 +43,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . /var/www
 
-# Create nginx config inline
+# Create nginx config template (will be processed at runtime)
 RUN echo 'server {\n\
-    listen 80;\n\
-    listen [::]:80;\n\
+    listen ${PORT};\n\
+    listen [::]:${PORT};\n\
     server_name _;\n\
     root /var/www/public;\n\
     add_header X-Frame-Options "SAMEORIGIN";\n\
@@ -59,7 +60,7 @@ RUN echo 'server {\n\
     location = /robots.txt  { access_log off; log_not_found off; }\n\
     error_page 404 /index.php;\n\
     location ~ \.php$ {\n\
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
         include fastcgi_params;\n\
         fastcgi_hide_header X-Powered-By;\n\
@@ -67,9 +68,9 @@ RUN echo 'server {\n\
     location ~ /\.(?!well-known).* {\n\
         deny all;\n\
     }\n\
-}' > /etc/nginx/sites-available/default
+}' > /etc/nginx/sites-available/default.template
 
-# Create supervisord config inline
+# Create supervisord config
 RUN echo '[supervisord]\n\
 nodaemon=true\n\
 user=root\n\
@@ -93,6 +94,9 @@ stderr_logfile=/dev/stderr\n\
 stderr_logfile_maxbytes=0\n\
 autorestart=true\n\
 startretries=3' > /etc/supervisor/conf.d/supervisord.conf
+
+# Configure PHP-FPM to listen on TCP instead of socket
+RUN sed -i 's/listen = \/run\/php\/php8.2-fpm.sock/listen = 127.0.0.1:9000/' /usr/local/etc/php-fpm.d/www.conf
 
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
@@ -122,11 +126,27 @@ RUN php artisan config:cache \
     && php artisan event:cache \
     && php artisan view:cache
 
-# Expose port
-EXPOSE 80
+# Create start script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Set default PORT if not provided\n\
+export PORT=${PORT:-80}\n\
+\n\
+echo "Starting application on port $PORT"\n\
+\n\
+# Generate nginx config from template with actual PORT\n\
+envsubst "\$PORT" < /etc/nginx/sites-available/default.template > /etc/nginx/sites-available/default\n\
+\n\
+# Test nginx configuration\n\
+nginx -t\n\
+\n\
+# Start supervisord\n\
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /start.sh \
+    && chmod +x /start.sh
 
-# Start supervisord
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Expose port (Railway will override this with their PORT variable)
+EXPOSE ${PORT:-80}
 
-
-# End of Dockerfile
+# Start application
+CMD ["/start.sh"]
