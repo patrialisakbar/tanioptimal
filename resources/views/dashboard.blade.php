@@ -474,10 +474,7 @@
                                     <select id="rainfall" class="form-control">
                                         <option value="">-- Pilih Curah Hujan --</option>
                                         <option value="800_1200">1500–1800 mm (skor 3)</option>
-                                        <!-- <option value="1500_1800">1500–1800 mm (skor 3)</option> -->
                                         <option value="1200_1500">1200–1500 mm (skor 2)</option>
-                                        <!-- <option value="1200_1500">1200–1500 mm (skor 2)</option> -->
-                                        <!-- <option value="800_1200">800–1200 mm (skor 1)</option> -->
                                         <option value="1500_1800">800–1200 mm (skor 1)</option>
                                     </select>
                                     
@@ -530,9 +527,6 @@
                                     🔍 Cari Rekomendasi
                                 </button>
                             </div>
-
-                            <!-- TEST CASE REFERENCE -->
-                            
                         </div>
 
                         <div id="riceResults">
@@ -584,7 +578,7 @@
             if (tabName === 'articles') {
                 loadArticles();
             } else if (tabName === 'rice') {
-                loadDroughtResistantRanking();
+                // Optional: load rice data if needed
             }
         }
 
@@ -626,8 +620,12 @@
                 container.innerHTML = data.data.map(article => {
                     const categoryId = article.category_id ? article.category_id.toString() : '1';
                     const colors = categoryColors[categoryId] || categoryColors['1'];
+                    
+                    // FIX: Handle both Cloudinary URLs and local storage paths
                     const imageUrl = article.featured_image
-                        ? `/storage/${article.featured_image.includes('articles/') ? article.featured_image : 'articles/' + article.featured_image}`
+                        ? (article.featured_image.startsWith('http') 
+                            ? article.featured_image  // Cloudinary or external URL
+                            : `/storage/${article.featured_image}`)  // Local storage
                         : 'https://via.placeholder.com/400x200?text=TaniOptimal';
 
                     const shortContent = article.content.replace(/<[^>]*>/g, '').substring(0, 100);
@@ -638,7 +636,10 @@
 
                     return `
                         <div class="article-card">
-                            <img src="${imageUrl}" alt="${article.title}" class="article-image">
+                            <img src="${imageUrl}" 
+                                 alt="${article.title}" 
+                                 class="article-image"
+                                 onerror="this.src='https://via.placeholder.com/400x200?text=TaniOptimal'">
                             <div class="article-body">
                                 <span class="badge ${colors.badge}">${colors.icon} ${colors.name}</span>
                                 <h4 class="font-bold text-gray-900 mb-2">${article.title}</h4>
@@ -696,65 +697,6 @@
             loadRiceVarietiesFromApi();
         });
 
-        // Data Varietas Padi dengan Kriteria
-        const riceVarieties = [
-            {
-                name: 'Padi Inpari 42',
-                description: 'Varietas hibrida dengan potensi hasil tinggi',
-                icon: '🌾',
-                maturityAge: 110,
-                soilScore: { 'ultisol_inseptisol': 4, 'liat_berpasir': 3, 'aluvial': 2, 'gleysol_andosol': 1 },
-                rainfallScore: { '800_1200': 4, '1200_1500': 3, '1500_1800': 2, 'above_1800': 1 },
-                temperatureScore: { '30_35': 4, '27_29': 3, '25_26': 2, 'below_25': 1 },
-                altitudeScore: { '0_500': 4, '500_800': 3, '800_1200': 2, 'above_1200': 1 },
-                waterScore: { 'rainwater': 4, 'simple_irrigation': 3, 'medium_water': 2, 'excess_water': 1 }
-            },
-            {
-                name: 'Padi Ciherang',
-                description: 'Varietas adaptif dengan toleransi cukup baik',
-                icon: '🌿',
-                maturityAge: 115,
-                soilScore: { 'ultisol_inseptisol': 3, 'liat_berpasir': 4, 'aluvial': 3, 'gleysol_andosol': 2 },
-                rainfallScore: { '800_1200': 3, '1200_1500': 4, '1500_1800': 3, 'above_1800': 2 },
-                temperatureScore: { '30_35': 3, '27_29': 4, '25_26': 3, 'below_25': 2 },
-                altitudeScore: { '0_500': 3, '500_800': 4, '800_1200': 3, 'above_1200': 1 },
-                waterScore: { 'rainwater': 3, 'simple_irrigation': 4, 'medium_water': 3, 'excess_water': 2 }
-            },
-            {
-                name: 'Padi IR64',
-                description: 'Varietas unggul dengan daya tahan terhadap penyakit',
-                icon: '🌾',
-                maturityAge: 120,
-                soilScore: { 'ultisol_inseptisol': 3, 'liat_berpasir': 3, 'aluvial': 4, 'gleysol_andosol': 3 },
-                rainfallScore: { '800_1200': 3, '1200_1500': 3, '1500_1800': 4, 'above_1800': 3 },
-                temperatureScore: { '30_35': 3, '27_29': 3, '25_26': 4, 'below_25': 2 },
-                altitudeScore: { '0_500': 4, '500_800': 3, '800_1200': 3, 'above_1200': 2 },
-                waterScore: { 'rainwater': 3, 'simple_irrigation': 3, 'medium_water': 4, 'excess_water': 3 }
-            },
-            {
-                name: 'Padi Maro',
-                description: 'Varietas tahan rendaman dan banjir',
-                icon: '💧',
-                maturityAge: 125,
-                soilScore: { 'ultisol_inseptisol': 2, 'liat_berpasir': 2, 'aluvial': 3, 'gleysol_andosol': 4 },
-                rainfallScore: { '800_1200': 2, '1200_1500': 2, '1500_1800': 3, 'above_1800': 4 },
-                temperatureScore: { '30_35': 2, '27_29': 2, '25_26': 3, 'below_25': 4 },
-                altitudeScore: { '0_500': 3, '500_800': 3, '800_1200': 3, 'above_1200': 4 },
-                waterScore: { 'rainwater': 2, 'simple_irrigation': 2, 'medium_water': 4, 'excess_water': 4 }
-            },
-            {
-                name: 'Padi Grogol',
-                description: 'Varietas lokal dengan adaptasi lahan kering',
-                icon: '🏜️',
-                maturityAge: 115,
-                soilScore: { 'ultisol_inseptisol': 4, 'liat_berpasir': 4, 'aluvial': 2, 'gleysol_andosol': 1 },
-                rainfallScore: { '800_1200': 4, '1200_1500': 2, '1500_1800': 1, 'above_1800': 1 },
-                temperatureScore: { '30_35': 4, '27_29': 2, '25_26': 1, 'below_25': 1 },
-                altitudeScore: { '0_500': 4, '500_800': 3, '800_1200': 2, 'above_1200': 1 },
-                waterScore: { 'rainwater': 4, 'simple_irrigation': 3, 'medium_water': 1, 'excess_water': 1 }
-            }
-        ];
-
         function getRiceRecommendations() {
             // Get selected values
             const soil = document.getElementById('soilType').value;
@@ -788,32 +730,31 @@
             const totalWeight = 15; // Total = 4+2+3+1+5
 
             // Score mapping berdasarkan pilihan user (SESUAI DATA EXCEL: 1-3)
-            // PENTING: Mapping ini harus sesuai dengan yang di HTML dropdown!
             const scoreMap = {
                 soil: {
-                    'ultisol': 3,      // Skor 3 di Excel
-                    'liat': 2,         // Skor 2 di Excel
-                    'aluvial': 1       // Skor 1 di Excel
+                    'ultisol': 3,
+                    'liat': 2,
+                    'aluvial': 1
                 },
                 rainfall: {
-                    '1500_1800': 1,    // Skor 1 - curah hujan tinggi (sesuai Nagina 22)
-                    '1200_1500': 2,    // Skor 2 - curah hujan sedang (sesuai Inpago 8)
-                    '800_1200': 3      // Skor 3 - curah hujan rendah (sesuai Sahbhagi Dhan, Vandana, DRR Dhan 42)
+                    '1500_1800': 1,
+                    '1200_1500': 2,
+                    '800_1200': 3
                 },
                 temperature: {
-                    '30_35': 3,        // Skor 3 - suhu tinggi
-                    '27_29': 2,        // Skor 2
-                    '25_26': 1         // Skor 1 - suhu rendah
+                    '30_35': 3,
+                    '27_29': 2,
+                    '25_26': 1
                 },
                 altitude: {
-                    '800_1200': 3,     // Skor 3 - dataran tinggi
-                    '500_800': 2,      // Skor 2
-                    '0_500': 1         // Skor 1 - dataran rendah
+                    '800_1200': 3,
+                    '500_800': 2,
+                    '0_500': 1
                 },
                 water: {
-                    'tadah_hujan': 1,        // Skor 1 - sedikit air (sesuai Nagina 22 & Inpago 8)
-                    'irigasi_sederhana': 2,  // Skor 2 (sesuai DRR Dhan 42)
-                    'rawa': 3                // Skor 3 - banyak air (sesuai Sahbhagi Dhan & Vandana)
+                    'tadah_hujan': 1,
+                    'irigasi_sederhana': 2,
+                    'rawa': 3
                 }
             };
 
@@ -826,25 +767,6 @@
                 'c5': scoreMap.water[water]
             };
 
-            // Criteria types (SESUAI DATA EXCEL)
-            const criteriaTypes = {
-                'c1': 'benefit',  // Jenis Tanah
-                'c2': 'cost',     // Curah Hujan (semakin rendah curah hujan, semakin tahan kering)
-                'c3': 'benefit',  // Suhu (semakin tinggi adaptasi suhu, semakin baik)
-                'c4': 'cost',     // Ketinggian (untuk konteks kekeringan)
-                'c5': 'cost'      // Ketersediaan Air (semakin sedikit air, semakin tahan kering)
-            };
-
-            console.log('=== INPUT USER ===');
-            console.log('User Input Scores:', userScores);
-            console.log('C1 (Tanah):', soil, '→', userScores.c1);
-            console.log('C2 (Hujan):', rainfall, '→', userScores.c2);
-            console.log('C3 (Suhu):', temperature, '→', userScores.c3);
-            console.log('C4 (Tinggi):', altitude, '→', userScores.c4);
-            console.log('C5 (Air):', water, '→', userScores.c5);
-            console.log('Expected: 3-2-3-2-1 untuk Inpago 8');
-            console.log('==================');
-
             // Fetch varieties dari API dan hitung SAW scores
             fetch('/api/rice-saw/varieties')
                 .then(response => response.json())
@@ -856,9 +778,7 @@
 
                     const varieties = result.data;
 
-                    console.log('Varieties dari API:', varieties);
-
-                    // PERBAIKAN UTAMA: Hitung similarity score antara user input dan variety
+                    // Hitung similarity score antara user input dan variety
                     const scoredVarieties = varieties.map(variety => {
                         let totalSimilarityScore = 0;
                         let details = [];
@@ -870,14 +790,9 @@
                             const weight = weights[criteriaCode];
 
                             // Hitung similarity (0-1): 1 = perfect match, 0 = sangat berbeda
-                            // Range score: 1-3, jadi max difference = 2
                             const maxDifference = 2;
                             const actualDifference = Math.abs(varietyScore - userScore);
-
-                            // Similarity: semakin kecil difference, semakin tinggi similarity
                             const similarity = 1 - (actualDifference / maxDifference);
-
-                            // Weighted similarity
                             const weightedSimilarity = weight * similarity;
                             totalSimilarityScore += weightedSimilarity;
 
@@ -895,12 +810,6 @@
                         // Final score = (Total Weighted Similarity / Total Weight) * 100
                         const finalScore = (totalSimilarityScore / totalWeight) * 100;
 
-                        console.log(`${variety.name}:`, {
-                            totalSimilarityScore: totalSimilarityScore.toFixed(2),
-                            finalScore: finalScore.toFixed(1) + '%',
-                            details
-                        });
-
                         return {
                             id: variety.id,
                             name: variety.name,
@@ -915,9 +824,7 @@
                     // Sort by score descending
                     scoredVarieties.sort((a, b) => b.finalScore - a.finalScore);
 
-                    console.log('Sorted Results:', scoredVarieties.map(v => `${v.name}: ${v.finalScore}%`));
-
-                    // Display all results (Top 5)
+                    // Display results (Top 5)
                     const resultsDiv = document.getElementById('riceResults');
                     const topVarieties = scoredVarieties.slice(0, 5);
 
@@ -936,66 +843,66 @@
                     };
 
                     let resultsHTML = `
-                <div class="space-y-4">
-                    <div class="card border-l-4 border-blue-600 bg-blue-50">
-                        <p class="text-sm text-blue-800 mb-2"><strong>ℹ️ Informasi:</strong></p>
-                        <p class="text-xs text-blue-700 leading-relaxed">Berdasarkan parameter yang Anda pilih menggunakan metode SAW (Simple Additive Weighting), sistem merekomendasikan ${topVarieties.length} varietas padi dengan tingkat kecocokan tertinggi.</p>
-                    </div>
-            `;
+                        <div class="space-y-4">
+                            <div class="card border-l-4 border-blue-600 bg-blue-50">
+                                <p class="text-sm text-blue-800 mb-2"><strong>ℹ️ Informasi:</strong></p>
+                                <p class="text-xs text-blue-700 leading-relaxed">Berdasarkan parameter yang Anda pilih menggunakan metode SAW (Simple Additive Weighting), sistem merekomendasikan ${topVarieties.length} varietas padi dengan tingkat kecocokan tertinggi.</p>
+                            </div>
+                    `;
 
                     // Display top result dengan highlight
                     const topVariety = topVarieties[0];
                     const topPerformance = getPerformanceLevel(topVariety.finalScore);
 
                     resultsHTML += `
-                    <div class="card border-l-4 border-green-600 bg-green-50">
-                        <p class="text-sm font-semibold text-green-800">🌾 Rekomendasi Teratas</p>
-                    </div>
-                    <div class="card border-l-4 border-green-600 bg-gradient-to-r from-green-50 to-transparent">
-                        <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <h4 class="font-bold text-lg text-gray-900">🌾 ${topVariety.name}</h4>
-                                <p class="text-sm text-gray-600 mt-1">${topVariety.description || 'Varietas unggul dengan adaptasi baik'}</p>
-                                <p class="text-xs text-gray-500 mt-2">🌱 Hasil: ${topVariety.yield_potential} ton/ha | ⏱ Maturity: ${topVariety.maturity_days} hari</p>
+                        <div class="card border-l-4 border-green-600 bg-green-50">
+                            <p class="text-sm font-semibold text-green-800">🌾 Rekomendasi Teratas</p>
+                        </div>
+                        <div class="card border-l-4 border-green-600 bg-gradient-to-r from-green-50 to-transparent">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-bold text-lg text-gray-900">🌾 ${topVariety.name}</h4>
+                                    <p class="text-sm text-gray-600 mt-1">${topVariety.description || 'Varietas unggul dengan adaptasi baik'}</p>
+                                    <p class="text-xs text-gray-500 mt-2">🌱 Hasil: ${topVariety.yield_potential} ton/ha | ⏱ Maturity: ${topVariety.maturity_days} hari</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-3xl font-bold text-green-600">${topVariety.finalScore}%</div>
+                                    <p class="text-xs text-gray-500 mt-1">Kesesuaian</p>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-3xl font-bold text-green-600">${topVariety.finalScore}%</div>
-                                <p class="text-xs text-gray-500 mt-1">Kesesuaian</p>
+                            
+                            <div class="grid grid-cols-5 gap-2 text-center text-xs">
+                                <div class="p-2 bg-gray-100 rounded">
+                                    <p class="text-gray-700 font-semibold text-xs">${soilLabel.split('(')[0].trim()}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Tanah</p>
+                                </div>
+                                <div class="p-2 bg-gray-100 rounded">
+                                    <p class="text-gray-700 font-semibold text-xs">${rainfallLabel.split('(')[0].trim()}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Hujan</p>
+                                </div>
+                                <div class="p-2 bg-gray-100 rounded">
+                                    <p class="text-gray-700 font-semibold text-xs">${temperatureLabel.split('(')[0].trim()}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Suhu</p>
+                                </div>
+                                <div class="p-2 bg-gray-100 rounded">
+                                    <p class="text-gray-700 font-semibold text-xs">${altitudeLabel.split('(')[0].trim()}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Tinggi</p>
+                                </div>
+                                <div class="p-2 bg-gray-100 rounded">
+                                    <p class="text-gray-700 font-semibold text-xs">${waterLabel.split('(')[0].trim()}</p>
+                                    <p class="text-gray-500 text-xs mt-1">Air</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full transition-all duration-500" style="width: ${topVariety.finalScore}%"></div>
                             </div>
                         </div>
-                        
-                        <div class="grid grid-cols-5 gap-2 text-center text-xs">
-                            <div class="p-2 bg-gray-100 rounded">
-                                <p class="text-gray-700 font-semibold text-xs">${soilLabel.split('(')[0].trim()}</p>
-                                <p class="text-gray-500 text-xs mt-1">Tanah</p>
-                            </div>
-                            <div class="p-2 bg-gray-100 rounded">
-                                <p class="text-gray-700 font-semibold text-xs">${rainfallLabel.split('(')[0].trim()}</p>
-                                <p class="text-gray-500 text-xs mt-1">Hujan</p>
-                            </div>
-                            <div class="p-2 bg-gray-100 rounded">
-                                <p class="text-gray-700 font-semibold text-xs">${temperatureLabel.split('(')[0].trim()}</p>
-                                <p class="text-gray-500 text-xs mt-1">Suhu</p>
-                            </div>
-                            <div class="p-2 bg-gray-100 rounded">
-                                <p class="text-gray-700 font-semibold text-xs">${altitudeLabel.split('(')[0].trim()}</p>
-                                <p class="text-gray-500 text-xs mt-1">Tinggi</p>
-                            </div>
-                            <div class="p-2 bg-gray-100 rounded">
-                                <p class="text-gray-700 font-semibold text-xs">${waterLabel.split('(')[0].trim()}</p>
-                                <p class="text-gray-500 text-xs mt-1">Air</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-green-600 h-2 rounded-full transition-all duration-500" style="width: ${topVariety.finalScore}%"></div>
-                        </div>
-                    </div>
 
-                    <!-- All Results Section -->
-                    <div class="card border-l-4 border-orange-600 bg-orange-50 mt-6">
-                        <h4 class="text-lg font-bold text-gray-900 mb-4">🏆 Ranking Rekomendasi Varietas (Top 5)</h4>
-            `;
+                        <!-- All Results Section -->
+                        <div class="card border-l-4 border-orange-600 bg-orange-50 mt-6">
+                            <h4 class="text-lg font-bold text-gray-900 mb-4">🏆 Ranking Rekomendasi Varietas (Top 5)</h4>
+                    `;
 
                     // Display only the top recommended variety with ranking
                     if (topVarieties.length > 0) {
@@ -1004,48 +911,48 @@
                         const performance = getPerformanceLevel(topVariety.finalScore);
 
                         resultsHTML += `
-                        <div class="bg-white rounded-lg border border-gray-200 p-4 mb-3 hover:shadow-md transition">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-start gap-3">
-                                    <span class="text-3xl">${rankIcon}</span>
-                                    <div class="flex-1">
-                                        <h5 class="font-bold text-gray-900">${topVariety.name}</h5>
-                                        <p class="text-xs text-gray-500 mt-1">${topVariety.description || 'Varietas unggul dengan adaptasi baik'}</p>
+                            <div class="bg-white rounded-lg border border-gray-200 p-4 mb-3 hover:shadow-md transition">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-3xl">${rankIcon}</span>
+                                        <div class="flex-1">
+                                            <h5 class="font-bold text-gray-900">${topVariety.name}</h5>
+                                            <p class="text-xs text-gray-500 mt-1">${topVariety.description || 'Varietas unggul dengan adaptasi baik'}</p>
+                                        </div>
+                                    </div>
+                                    <span class="badge ${performance.color} text-xs font-semibold px-3 py-1 rounded-full">${performance.label}</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-4 gap-3 mt-3">
+                                    <div>
+                                        <p class="text-xs text-gray-600 font-semibold">Kecocokan</p>
+                                        <p class="text-lg font-bold text-green-600">${topVariety.finalScore}%</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600 font-semibold">Hasil Panen</p>
+                                        <p class="text-sm font-bold text-gray-900">${topVariety.yield_potential} ton/ha</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600 font-semibold">Maturity</p>
+                                        <p class="text-sm font-bold text-gray-900">${topVariety.maturity_days} hari</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600 font-semibold">Ranking</p>
+                                        <p class="text-sm font-bold text-gray-900">#1 dari 5</p>
                                     </div>
                                 </div>
-                                <span class="badge ${performance.color} text-xs font-semibold px-3 py-1 rounded-full">${performance.label}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-4 gap-3 mt-3">
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">Kecocokan</p>
-                                    <p class="text-lg font-bold text-green-600">${topVariety.finalScore}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">Hasil Panen</p>
-                                    <p class="text-sm font-bold text-gray-900">${topVariety.yield_potential} ton/ha</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">Maturity</p>
-                                    <p class="text-sm font-bold text-gray-900">${topVariety.maturity_days} hari</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">Ranking</p>
-                                    <p class="text-sm font-bold text-gray-900">#1 dari 5</p>
+                                
+                                <div class="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-green-600 h-1.5 rounded-full transition-all duration-500" style="width: ${topVariety.finalScore}%"></div>
                                 </div>
                             </div>
-                            
-                            <div class="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="bg-green-600 h-1.5 rounded-full transition-all duration-500" style="width: ${topVariety.finalScore}%"></div>
-                            </div>
-                        </div>
-                `;
+                        `;
                     }
 
                     resultsHTML += `
-                    </div>
-                </div>
-            `;
+                            </div>
+                        </div>
+                    `;
 
                     resultsDiv.innerHTML = resultsHTML;
                 })
@@ -1087,12 +994,6 @@
             harvestDateObj.setDate(harvestDateObj.getDate() + maturityDays);
 
             // Format dates
-            const formatter = new Intl.DateTimeFormat('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-            });
-
             const plantDateFormatted = new Intl.DateTimeFormat('id-ID', {
                 day: 'numeric',
                 month: 'short'
@@ -1193,107 +1094,6 @@
         function deleteSchedule(scheduleId) {
             schedules = schedules.filter(s => s.id !== scheduleId);
             renderSchedules();
-        }
-
-        // Load Drought Resistant Ranking (SAW Method)
-        async function loadDroughtResistantRanking() {
-            try {
-                const container = document.getElementById('droughtRankingContainer');
-                container.innerHTML = '<div class="text-center text-gray-600 py-4">Memuat ranking...</div>';
-
-                // Ranking predefined berdasarkan SAW calculation
-                // Nagina 22 (1) → Inpago 8 (2) → DRR Dhan 42 (3) → Sahbhagi Dhan (4) → Vandana (5)
-                const droughtResistantRanking = [
-                    {
-                        rank: 1,
-                        name: 'Nagina 22',
-                        description: 'Varietas premium dengan aroma khas',
-                        sawScore: 16.0,
-                        performance: 'Sangat Tahan',
-                        icon: '🥇'
-                    },
-                    {
-                        rank: 2,
-                        name: 'Inpago 8',
-                        description: 'Varietas unggul dengan hasil tinggi',
-                        sawScore: 14.0,
-                        performance: 'Sangat Tahan',
-                        icon: '🥈'
-                    },
-                    {
-                        rank: 3,
-                        name: 'DRR Dhan 42',
-                        description: 'Varietas tahan stres dengan adaptasi baik',
-                        sawScore: 8.8,
-                        performance: 'Tahan',
-                        icon: '🥉'
-                    },
-                    {
-                        rank: 4,
-                        name: 'Sahbhagi Dhan',
-                        description: 'Varietas unggul dengan hasil stabil',
-                        sawScore: 7.7,
-                        performance: 'Cukup Tahan',
-                        icon: '4️⃣'
-                    },
-                    {
-                        rank: 5,
-                        name: 'Vandana',
-                        description: 'Varietas tahan kekeringan dan lahan marjinal',
-                        sawScore: 6.3,
-                        performance: 'Kurang Tahan',
-                        icon: '5️⃣'
-                    }
-                ];
-
-                if (droughtResistantRanking.length === 0) {
-                    container.innerHTML = '<div class="text-center text-gray-600 py-4">Data ranking tidak tersedia</div>';
-                    return;
-                }
-
-                // Render ranking
-                container.innerHTML = droughtResistantRanking.map((item, idx) => {
-                    const progressBarColor = idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : idx === 3 ? 'bg-green-500' : 'bg-blue-500';
-                    const performanceColor = item.performance === 'Sangat Tahan' ? 'bg-green-100 text-green-800' :
-                        item.performance === 'Tahan' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-orange-100 text-orange-800';
-
-                    return `
-                        <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-3xl">${item.icon}</span>
-                                    <div>
-                                        <p class="font-bold text-gray-900">${item.name}</p>
-                                        <p class="text-xs text-gray-500">${item.description}</p>
-                                    </div>
-                                </div>
-                                <span class="badge ${performanceColor} text-xs font-semibold px-3 py-1 rounded-full">${item.performance}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 mb-3">
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">SAW Score</p>
-                                    <p class="text-lg font-bold text-gray-900">${item.sawScore.toFixed(1)}</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-600 font-semibold">Ranking</p>
-                                    <p class="text-lg font-bold text-gray-900">#${item.rank} dari 5</p>
-                                </div>
-                            </div>
-                            
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="${progressBarColor} h-2 rounded-full transition-all" style="width: ${(item.rank / 5) * 100}%"></div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading drought resistant ranking:', error);
-                document.getElementById('droughtRankingContainer').innerHTML = `
-                    <div class="text-center text-red-600 py-4">Gagal memuat ranking</div>
-                `;
-            }
         }
 
         // Load articles on page load
