@@ -68,13 +68,17 @@ class RiceRecommendationSawService
      * Formula:
      * - Benefit type: normalized_score = score / max_score
      * - Cost type: normalized_score = min_score / score
-     * - Final score = sum(weight * normalized_score)
+     * - Final score = sum(weight * normalized_score) / sum(weight)
      * 
-     * @param array $scores
-     * @return float
+     * @param array $scores Array dari criteria scores
+     * @return float Final normalized score (0-1)
      */
     public function calculateFinalScore(array $scores): float
     {
+        if (empty($scores)) {
+            return 0;
+        }
+
         $totalWeight = 0;
         $weightedSum = 0;
 
@@ -93,7 +97,10 @@ class RiceRecommendationSawService
         }
 
         // Hitung final score dengan normalisasi weight
-        return $totalWeight > 0 ? ($weightedSum / $totalWeight) : 0;
+        $finalScore = $totalWeight > 0 ? ($weightedSum / $totalWeight) : 0;
+        
+        // Ensure score is between 0 and 1
+        return min(1, max(0, $finalScore));
     }
 
     /**
@@ -102,15 +109,20 @@ class RiceRecommendationSawService
      * @param float $score Raw score (1-5)
      * @param string $type 'benefit' atau 'cost'
      * @param string $criteriaCode Code kriteria untuk reference
-     * @return float Normalized score
+     * @return float Normalized score (0-1)
      */
     private function normalizeScore(float $score, string $type, string $criteriaCode): float
     {
         // Get max and min score untuk kriteria ini dari semua varietas
-        $allScoresForCriteria = RiceVarietyScore::whereHas(
-            'criteria',
-            fn($q) => $q->where('code', $criteriaCode)
-        )->pluck('score')->toArray();
+        $criteria = RiceCriteria::where('code', $criteriaCode)->first();
+        
+        if (!$criteria) {
+            return 0;
+        }
+
+        $allScoresForCriteria = RiceVarietyScore::where('criteria_id', $criteria->id)
+            ->pluck('score')
+            ->toArray();
 
         if (empty($allScoresForCriteria)) {
             return 0;
@@ -124,7 +136,7 @@ class RiceRecommendationSawService
             // Semakin tinggi score, semakin baik
             return $maxScore > 0 ? $score / $maxScore : 0;
         } else {
-            // Cost type: semakin rendah score, semakin baik
+            // Cost type: semakin rendah score, semakin baik (invert: min/score)
             return $score > 0 ? $minScore / $score : 0;
         }
     }

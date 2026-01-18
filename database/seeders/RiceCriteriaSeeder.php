@@ -15,41 +15,41 @@ class RiceCriteriaSeeder extends Seeder
         $criteria = [
             [
                 'code' => 'c1',
-                'name' => 'Kesesuaian Jenis Tanah',
-                'description' => 'Seberapa sesuai varietas padi dengan jenis tanah lahan',
-                'weight' => 4,
+                'name' => 'Jenis Tanah',
+                'description' => 'Kesesuaian varietas padi dengan jenis tanah lahan',
+                'weight' => 1,
                 'type' => 'benefit', // Semakin sesuai, semakin baik
                 'order' => 1,
             ],
             [
                 'code' => 'c2',
-                'name' => 'Ketahanan Curah Hujan Rendah',
-                'description' => 'Seberapa tahan varietas padi terhadap curah hujan rendah',
-                'weight' => 2,
+                'name' => 'Curah Hujan',
+                'description' => 'Ketahanan varietas padi terhadap curah hujan (biaya/cost)',
+                'weight' => 1,
                 'type' => 'cost', // Semakin mampu pada hujan rendah, semakin baik
                 'order' => 2,
             ],
             [
                 'code' => 'c3',
-                'name' => 'Adaptasi Suhu Tinggi',
-                'description' => 'Seberapa baik varietas padi beradaptasi dengan suhu tinggi',
-                'weight' => 3,
+                'name' => 'Suhu Optimal',
+                'description' => 'Adaptasi varietas padi dengan suhu optimal (manfaat)',
+                'weight' => 1,
                 'type' => 'benefit', // Semakin baik adaptasi, semakin baik
                 'order' => 3,
             ],
             [
                 'code' => 'c4',
-                'name' => 'Kesesuaian Ketinggian Lokasi',
-                'description' => 'Seberapa sesuai varietas padi dengan ketinggian lokasi tanam',
+                'name' => 'Ketinggian Lahan',
+                'description' => 'Kesesuaian varietas padi dengan ketinggian lokasi tanam (biaya)',
                 'weight' => 1,
                 'type' => 'cost', // Semakin sesuai dengan ketinggian, semakin baik
                 'order' => 4,
             ],
             [
                 'code' => 'c5',
-                'name' => 'Efisiensi Pemanfaatan Air',
-                'description' => 'Seberapa efisien varietas padi dalam memanfaatkan air lahan',
-                'weight' => 5,
+                'name' => 'Ketersediaan Air',
+                'description' => 'Efisiensi varietas padi dalam memanfaatkan air lahan',
+                'weight' => 1,
                 'type' => 'cost', // Semakin efisien, semakin baik
                 'order' => 5,
             ],

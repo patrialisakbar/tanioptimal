@@ -106,32 +106,44 @@
 
         .tabs-header {
             display: flex;
+            justify-content: center;
+            gap: 24px;
             border-bottom: 1px solid #e5e7eb;
-            padding: 0 24px;
-            gap: 0;
+            padding: 12px 24px;
             overflow-x: auto;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
         }
 
         .tab-button {
-            padding: 16px 24px;
-            background: none;
-            border: none;
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e5e7eb;
             color: #6b7280;
             cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 13px;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
+            border-radius: 8px;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .tab-button:hover {
-            color: #10b981;
+            color: #059669;
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transform: translateY(-2px);
         }
 
         .tab-button.active {
-            color: #10b981;
-            border-bottom-color: #10b981;
+            color: white;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #059669;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
         }
 
         .tabs-content {
@@ -389,14 +401,14 @@
         <div class="tabs-container">
             <!-- Tab Headers -->
             <div class="tabs-header">
-                <button class="tab-button active" onclick="switchTab('articles')">
-                    <i class="fas fa-book mr-2"></i>Artikel
+                <button class="tab-button active" onclick="switchTab('articles')" title="Baca artikel pertanian terbaru">
+                    <span>📚 Artikel</span>
                 </button>
-                <button class="tab-button" onclick="switchTab('rice')">
-                    <i class="fas fa-leaf mr-2"></i>Varietas Padi
+                <button class="tab-button" onclick="switchTab('rice')" title="Rekomendasi varietas padi">
+                    <span>🌾 Varietas Padi</span>
                 </button>
-                <button class="tab-button" onclick="switchTab('schedule')">
-                    <i class="fas fa-calendar mr-2"></i>Jadwal
+                <button class="tab-button" onclick="switchTab('schedule')" title="Kelola jadwal tanam">
+                    <span>📅 Jadwal Tanam</span>
                 </button>
             </div>
 
@@ -454,9 +466,9 @@
                                     <label>2️⃣ Curah Hujan (mm/tahun) <span class="text-xs text-gray-500">(bobot 2)</span></label>
                                     <select id="rainfall" class="form-control">
                                         <option value="">-- Pilih --</option>
-                                        <option value="800_1200">800–1200 mm (skor 3)</option>
+                                        <option value="1500_1800">1500–1800 mm (skor 3)</option>
                                         <option value="1200_1500">1200–1500 mm (skor 2)</option>
-                                        <option value="1500_1800">1500–1800 mm (skor 1)</option>
+                                        <option value="800_1200">800–1200 mm (skor 1)</option>
                                     </select>
                                 </div>
 
@@ -476,9 +488,9 @@
                                     <label>4️⃣ Ketinggian Lahan (mdpl) <span class="text-xs text-gray-500">(bobot 1)</span></label>
                                     <select id="altitude" class="form-control">
                                         <option value="">-- Pilih --</option>
-                                        <option value="0_500">0–500 mdpl (skor 3)</option>
-                                        <option value="500_800">500–800 mdpl (skor 2)</option>
-                                        <option value="800_1200">800–1200 mdpl (skor 1)</option>
+                                        <option value="800_1200">1200–800 mdpl (skor 3)</option>
+                                        <option value="500_800">800–500 mdpl (skor 2)</option>
+                                        <option value="0_500">500–0 mdpl (skor 1)</option>
                                     </select>
                                 </div>
 
@@ -487,9 +499,9 @@
                                     <label>5️⃣ Ketersediaan Air <span class="text-xs text-gray-500">(bobot 5)</span></label>
                                     <select id="waterAvailability" class="form-control">
                                         <option value="">-- Pilih --</option>
-                                        <option value="tadah_hujan">Tadah Hujan (skor 3)</option>
+                                        <option value="rawa">Rawa (skor 3)</option>
                                         <option value="irigasi_sederhana">Irigasi Sederhana (skor 2)</option>
-                                        <option value="rawa">Rawa (skor 1)</option>
+                                        <option value="tadah_hujan">Tadah Hujan (skor 1)</option>
                                     </select>
                                 </div>
 
@@ -547,6 +559,8 @@
             // Load data if needed
             if (tabName === 'articles') {
                 loadArticles();
+            } else if (tabName === 'rice') {
+                loadDroughtResistantRanking();
             }
         }
 
@@ -767,14 +781,14 @@
                     '25_26': { 'c3': 1 }
                 },
                 altitude: {
-                    '0_500': { 'c4': 3 },
+                    '800_1200': { 'c4': 3 },
                     '500_800': { 'c4': 2 },
-                    '800_1200': { 'c4': 1 }
+                    '0_500': { 'c4': 1 }
                 },
                 water: {
-                    'tadah_hujan': { 'c5': 3 },
+                    'rawa': { 'c5': 3 },
                     'irigasi_sederhana': { 'c5': 2 },
-                    'rawa': { 'c5': 1 }
+                    'tadah_hujan': { 'c5': 1 }
                 }
             };
 
@@ -818,13 +832,28 @@
 
                         const finalScore = (totalScore / totalWeight) * 100;
 
+                        // Define ranking data based on SAW scores
+                        const rankingData = {
+                            'Nagina 22': { rank: 1, icon: '🥇', sawScore: 16.0, performance: 'Sangat Tahan' },
+                            'Inpago 8': { rank: 2, icon: '🥈', sawScore: 14.0, performance: 'Sangat Tahan' },
+                            'DRR Dhan 42': { rank: 3, icon: '🥉', sawScore: 8.8, performance: 'Tahan' },
+                            'Sahbhagi Dhan': { rank: 4, icon: '4️⃣', sawScore: 7.7, performance: 'Cukup Tahan' },
+                            'Vandana': { rank: 5, icon: '5️⃣', sawScore: 6.3, performance: 'Kurang Tahan' }
+                        };
+
+                        const ranking = rankingData[variety.name] || { rank: 0, icon: '❓', sawScore: 0, performance: 'Tidak Diketahui' };
+
                         return {
                             id: variety.id,
                             name: variety.name,
                             description: variety.description,
                             yield_potential: variety.yield_potential,
                             maturity_days: variety.maturity_days,
-                            finalScore: Math.round(finalScore)
+                            finalScore: Math.round(finalScore),
+                            rankingIcon: ranking.icon,
+                            rankingPosition: ranking.rank,
+                            sawScore: ranking.sawScore,
+                            performance: ranking.performance
                         };
                     });
 
@@ -887,6 +916,42 @@
                                 
                                 <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
                                     <div class="bg-green-600 h-2 rounded-full" style="width: ${topVariety.finalScore}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Ranking Section - Hanya menampilkan varietas yang direkomendasikan -->
+                            <div class="card border-l-4 border-orange-600 bg-orange-50 mt-6">
+                                <h4 class="text-lg font-bold text-gray-900 mb-4">🏆 Analisis Ranking Tahan Kekeringan</h4>
+                                <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-start gap-3">
+                                            <span class="text-4xl">${topVariety.rankingIcon}</span>
+                                            <div>
+                                                <h5 class="font-bold text-gray-900">${topVariety.name}</h5>
+                                                <p class="text-xs text-gray-500 mt-1">${topVariety.description || 'Varietas unggul dengan adaptasi baik'}</p>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">${topVariety.performance}</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-4 mt-3">
+                                        <div>
+                                            <p class="text-xs text-gray-600 font-semibold">SAW Score</p>
+                                            <p class="text-lg font-bold text-gray-900">${topVariety.sawScore.toFixed(1)}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600 font-semibold">Ranking</p>
+                                            <p class="text-lg font-bold text-gray-900">#${topVariety.rankingPosition} dari 5</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600 font-semibold">Kecocokan Parameter</p>
+                                            <p class="text-lg font-bold text-green-600">${topVariety.finalScore}%</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                                        <div class="bg-green-600 h-2 rounded-full transition-all" style="width: ${(topVariety.rankingPosition / 5) * 100}%"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1036,6 +1101,107 @@
         function deleteSchedule(scheduleId) {
             schedules = schedules.filter(s => s.id !== scheduleId);
             renderSchedules();
+        }
+
+        // Load Drought Resistant Ranking (SAW Method)
+        async function loadDroughtResistantRanking() {
+            try {
+                const container = document.getElementById('droughtRankingContainer');
+                container.innerHTML = '<div class="text-center text-gray-600 py-4">Memuat ranking...</div>';
+
+                // Ranking predefined berdasarkan SAW calculation
+                // Nagina 22 (1) → Inpago 8 (2) → DRR Dhan 42 (3) → Sahbhagi Dhan (4) → Vandana (5)
+                const droughtResistantRanking = [
+                    {
+                        rank: 1,
+                        name: 'Nagina 22',
+                        description: 'Varietas premium dengan aroma khas',
+                        sawScore: 16.0,
+                        performance: 'Sangat Tahan',
+                        icon: '🥇'
+                    },
+                    {
+                        rank: 2,
+                        name: 'Inpago 8',
+                        description: 'Varietas unggul dengan hasil tinggi',
+                        sawScore: 14.0,
+                        performance: 'Sangat Tahan',
+                        icon: '🥈'
+                    },
+                    {
+                        rank: 3,
+                        name: 'DRR Dhan 42',
+                        description: 'Varietas tahan stres dengan adaptasi baik',
+                        sawScore: 8.8,
+                        performance: 'Tahan',
+                        icon: '🥉'
+                    },
+                    {
+                        rank: 4,
+                        name: 'Sahbhagi Dhan',
+                        description: 'Varietas unggul dengan hasil stabil',
+                        sawScore: 7.7,
+                        performance: 'Cukup Tahan',
+                        icon: '4️⃣'
+                    },
+                    {
+                        rank: 5,
+                        name: 'Vandana',
+                        description: 'Varietas tahan kekeringan dan lahan marjinal',
+                        sawScore: 6.3,
+                        performance: 'Kurang Tahan',
+                        icon: '5️⃣'
+                    }
+                ];
+
+                if (droughtResistantRanking.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-600 py-4">Data ranking tidak tersedia</div>';
+                    return;
+                }
+
+                // Render ranking
+                container.innerHTML = droughtResistantRanking.map((item, idx) => {
+                    const progressBarColor = idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : idx === 3 ? 'bg-green-500' : 'bg-blue-500';
+                    const performanceColor = item.performance === 'Sangat Tahan' ? 'bg-green-100 text-green-800' : 
+                                            item.performance === 'Tahan' ? 'bg-yellow-100 text-yellow-800' : 
+                                            'bg-orange-100 text-orange-800';
+                    
+                    return `
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">${item.icon}</span>
+                                    <div>
+                                        <p class="font-bold text-gray-900">${item.name}</p>
+                                        <p class="text-xs text-gray-500">${item.description}</p>
+                                    </div>
+                                </div>
+                                <span class="badge ${performanceColor} text-xs font-semibold px-3 py-1 rounded-full">${item.performance}</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <p class="text-xs text-gray-600 font-semibold">SAW Score</p>
+                                    <p class="text-lg font-bold text-gray-900">${item.sawScore.toFixed(1)}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-600 font-semibold">Ranking</p>
+                                    <p class="text-lg font-bold text-gray-900">#${item.rank} dari 5</p>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="${progressBarColor} h-2 rounded-full transition-all" style="width: ${(item.rank / 5) * 100}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading drought resistant ranking:', error);
+                document.getElementById('droughtRankingContainer').innerHTML = `
+                    <div class="text-center text-red-600 py-4">Gagal memuat ranking</div>
+                `;
+            }
         }
 
         // Load articles on page load

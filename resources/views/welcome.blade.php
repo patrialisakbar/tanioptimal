@@ -100,19 +100,10 @@
 
                 <!-- Feature 2 -->
                 <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-lg shadow-md">
-                    <div class="text-4xl mb-4">🌤️</div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900">Weather Forecast</h4>
+                    <div class="text-4xl mb-4">🌾</div>
+                    <h4 class="text-xl font-bold mb-3 text-gray-900">Rice Recomendation</h4>
                     <p class="text-gray-700">
                         Prakiraan cuaca 14 hari dengan rekomendasi otomatis untuk penanaman padi.
-                    </p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-lg shadow-md">
-                    <div class="text-4xl mb-4">💬</div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900">AI Chatbot</h4>
-                    <p class="text-gray-700">
-                        Konsultasi 24/7 dengan ahli pertanian padi powered by OpenAI.
                     </p>
                 </div>
 
@@ -222,7 +213,6 @@
                     <ul class="space-y-2">
                         <li><a href="#" class="hover:text-white transition">Knowledge Base</a></li>
                         <li><a href="#" class="hover:text-white transition">Weather Forecast</a></li>
-                        <li><a href="#" class="hover:text-white transition">AI Chatbot</a></li>
                         <li><a href="#" class="hover:text-white transition">Smart Scheduler</a></li>
                     </ul>
                 </div>
