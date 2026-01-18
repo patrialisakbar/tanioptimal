@@ -21,7 +21,7 @@ class RiceVarietyRecommendation extends Model
 
     protected $casts = [
         'suitability_score' => 'decimal:3',
-        'normalized_score' => 'decimal:2',
+        'normalized_score' => 'decimal:3',
         'rank' => 'integer',
     ];
 

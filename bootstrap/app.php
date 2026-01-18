@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin' => \App\Http\Middleware\IsAdmin::class,
+<<<<<<< HEAD
             'filament.admin' => \App\Http\Middleware\FilamentAdminMiddleware::class,
+=======
+>>>>>>> a804b7b660beb179e8248972f27283b70a52f793
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

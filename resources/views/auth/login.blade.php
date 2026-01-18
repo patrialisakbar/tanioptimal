@@ -130,8 +130,12 @@
                         <span>Knowledge Base Lengkap</span>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <div class="text-2xl">🌾</div>
+                        <div class="text-2xl">🌤️</div>
                         <span>Prakiraan Cuaca Real-time</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-2xl">💬</div>
+                        <span>AI Chatbot 24/7</span>
                     </div>
                     <div class="flex items-center space-x-3">
                         <div class="text-2xl">📅</div>
